@@ -3,7 +3,14 @@ import OpenAI from "openai";
 const MODEL = process.env.OPENAI_MODEL || "gpt-5.4-mini";
 const MAX_CONTRACT_CHARS = 100_000;
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let client: OpenAI | null = null;
+
+function getClient(): OpenAI {
+  if (!client) {
+    client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return client;
+}
 
 export type ContractAnalysis = {
   summary: string;
@@ -43,7 +50,7 @@ const analysisSchema = {
 export async function analyzeContract(contractText: string): Promise<ContractAnalysis> {
   const truncated = contractText.slice(0, MAX_CONTRACT_CHARS);
 
-  const response = await client.responses.create({
+  const response = await getClient().responses.create({
     model: MODEL,
     instructions:
       "你是一位專業的合約審查律師助理，使用繁體中文回覆。請仔細閱讀使用者提供的合約全文，找出對使用者不利或風險較高的條款，並提出具體、可執行的修改建議。",
